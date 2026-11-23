@@ -1,56 +1,127 @@
-# Welcome to your Expo app 👋
+# Lista de Compras — App Android (Expo)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App mobile (Android) para gerenciar listas de compras e importar itens a partir
+do cupom fiscal (NFC-e). Consome a API do projeto `lista-compras`.
 
-## Get started
+## Stack
 
-1. Install dependencies
+- **Expo SDK 58** (React Native 0.88, React 19.3)
+- **expo-router** (rotas em `src/app`)
+- **NativeWind** (Tailwind CSS 3.4)
+- **TanStack Query** (dados/cache)
+- **axios** (HTTP)
+- **react-hook-form + zod** (formulários)
+- **expo-secure-store** (token JWT)
+- **expo-camera** (leitura de QR/EAN)
 
-   ```bash
-   npm install
-   ```
+## Requisitos
 
-2. Start the app
+- **Node.js 22.13+** (o SDK 58 não roda no Node 20).
+  - Neste ambiente, o Node 22 está em `~/.local/node22`.
+- Backend rodando (`http://localhost:3001`).
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Como rodar
 
 ```bash
-npm run reset-project
+# usar o Node 22 instalado localmente
+export PATH="$HOME/.local/node22/bin:$PATH"
+
+cd ~/StudioProjects/listacompras
+npm install        # se ainda não instalou
+npx expo start --android
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+- **Emulador Android**: o app usa `http://10.0.2.2:3001` (host da máquina).
+- **Dispositivo físico**: edite `.env` e use `http://<IP-da-rede>:3001`.
 
-### Other setup steps
+### Backend
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+cd /home/edgar/workspace/listacompras
+npm run dev:backend
+```
 
-## Learn more
+> A base URL fica em `.env` (`EXPO_PUBLIC_API_URL`).
 
-To learn more about developing your project with Expo, look at the following resources:
+## Configuração
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### `.env`
 
-## Join the community
+```env
+EXPO_PUBLIC_API_URL=http://10.0.2.2:3001
+```
 
-Join our community of developers creating universal apps.
+### `app.json`
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Permissão de câmera (`expo-camera`).
+- `expo-secure-store`.
+- `expo-build-properties` com `usesCleartextTraffic: true` (HTTP no dev).
+
+## Scripts
+
+```bash
+npm start            # inicia o Expo
+npm run android      # abre no emulador/dispositivo Android
+npm run web          # versão web (dev)
+npm run lint         # ESLint
+npm run typecheck    # tsc --noEmit
+```
+
+## Estrutura
+
+```
+src/
+├── app/                    # rotas (expo-router)
+│   ├── _layout.tsx         # providers + auth gate
+│   ├── (auth)/login.tsx    # login (+ cadastro)
+│   └── (app)/
+│       ├── index.tsx       # dashboard
+│       └── lists/new.tsx   # nova lista + cupom fiscal
+├── api/                    # cliente axios e endpoints
+├── auth/                   # AuthContext + secure store
+├── components/             # UI, scanner e preview
+├── hooks/                  # queries/mutations
+├── lib/                    # mapeamento NFC-e e formatação
+└── types/                  # DTOs da API
+```
+
+## Funcionalidades (MVP)
+
+- **Login** com JWT (armazenado no `expo-secure-store`) e cadastro.
+- **Dashboard** com listas, total em R$, listas compartilhadas, pull-to-refresh e logout.
+- **Nova lista**:
+  1. Informe o nome.
+  2. Toque em **Importar da Nota Fiscal** e escaneie o QR code da NFC-e.
+  3. Revise/edite os itens importados.
+  4. Toque em **Criar lista**.
+
+## Integração com a API
+
+| Recurso | Endpoint |
+|---|---|
+| Login | `POST /api/auth/login` |
+| Cadastro | `POST /api/auth/register` |
+| Listas | `GET/POST /api/lists` |
+| Cupom fiscal | `POST /api/nfce/parse-nfce` |
+| Código de barras | `GET /api/products/barcode/:barcode` |
+
+> O endpoint de código de barras foi adicionado ao backend
+> (`backend/src/routes/productRoutes.ts`).
+
+## Solução de problemas
+
+| Problema | Causa provável / solução |
+|---|---|
+| `Não foi possível conectar ao servidor` | Backend parado ou `EXPO_PUBLIC_API_URL` errado |
+| Emulador não conecta | Use `10.0.2.2`, não `localhost` |
+| HTTP bloqueado em build | `usesCleartextTraffic` (dev) ou use HTTPS |
+| `429` no login | Rate limit de 30 tentativas/15 min por e-mail |
+| Deslogado após 1h | O JWT expira em 1h (refresh na Fase 2) |
+| Node incompatível | Use Node 22: `export PATH="$HOME/.local/node22/bin:$PATH"` |
+
+## Próximos passos (Fase 2)
+
+- Detalhe da lista (itens, marcar comprado, editar/remover).
+- Busca de produto por código de barras na UI.
+- Compartilhamento de listas.
+- Refresh token / sessão mais longa.

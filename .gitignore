@@ -30,13 +30,41 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files (inclui .env com URLs/chaves; versione só .env.example)
+.env
 .env*.local
+!.env.example
 
 # typescript
 *.tsbuildinfo
 
-example
+# IDEs
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# logs
+*.log
+
+# Expo / EAS
+.eas/
+*.aab
+*.apk
+
+# Android/iOS build outputs
+android/app/build/
+ios/build/
+
+# credenciais e contas de serviço (nunca commitar)
+google-services.json
+GoogleService-Info.plist
+*.keystore
+credentials.json
+service-account*.json
+
+# coverage
+coverage/
 
 # generated native folders
 /ios
