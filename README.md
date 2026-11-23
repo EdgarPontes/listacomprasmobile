@@ -105,6 +105,44 @@ npm run lint         # ESLint
 npm run typecheck    # tsc --noEmit
 ```
 
+## Gerar APK para instalar no Android
+
+O APK pode ser gerado na nuvem com o EAS Build. Use Node.js **22.13 ou
+superior** e, na raiz do projeto, faça login e configure o EAS (na primeira vez):
+
+```bash
+npx eas-cli@latest login
+npx eas-cli@latest build:configure
+```
+
+No `eas.json` criado na raiz, adicione ou ajuste o perfil `preview` dentro de
+`build` para gerar um APK instalável:
+
+```json
+{
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}
+```
+
+Se o arquivo já tiver outros perfis, mantenha-os e altere somente o `preview`.
+Depois, inicie o build:
+
+```bash
+npx eas-cli@latest build --platform android --profile preview
+```
+
+Ao terminar, abra o link exibido pelo EAS no celular Android para baixar e
+instalar o APK. Se solicitado, permita a instalação de apps provenientes
+daquela origem nas configurações do aparelho. Para publicar na Google Play,
+gere um **AAB** em vez de um APK.
+
 ## Estrutura
 
 ```
