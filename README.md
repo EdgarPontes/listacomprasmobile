@@ -18,7 +18,8 @@ do cupom fiscal (NFC-e). Consome a API do projeto `lista-compras`.
 
 - **Node.js 22.13+** (o SDK 58 não roda no Node 20).
   - Neste ambiente, o Node 22 está em `~/.local/node22`.
-- Backend rodando (`http://localhost:3001`).
+- Backend rodando (`http://localhost:3001`) **ou** o backend público de produção
+  (`https://apilistacompras.tecpontes.com.br`).
 
 ## Como rodar
 
@@ -31,8 +32,39 @@ npm install        # se ainda não instalou
 npx expo start --android
 ```
 
-- **Emulador Android**: o app usa `http://10.0.2.2:3001` (host da máquina).
-- **Dispositivo físico**: edite `.env` e use `http://<IP-da-rede>:3001`.
+- **Produção (padrão)**: o app usa `https://apilistacompras.tecpontes.com.br`,
+  inclusive quando o `.env` não está presente (ex.: builds via EAS).
+- **Emulador Android (dev)**: defina `EXPO_PUBLIC_API_URL=http://10.0.2.2:3001` no `.env`.
+
+### Conectar à produção
+
+O app fala direto com o serviço **backend** (Express) publicado no Easypanel.
+O domínio do site (`https://listacompras.tecpontes.com.br`) é o frontend Next.js
+e não expõe as rotas `/api/...` usadas pelo app.
+
+1. No Easypanel, no projeto `servidor` → serviço `listacompras` (compose) →
+   serviço **backend**, adicione o domínio `apilistacompras.tecpontes.com.br`
+   na porta `3001` e **redeploy** do compose (para o backend entrar na rede
+   `easypanel`, por onde o Traefik o alcança).
+2. Crie o registro DNS `listacompras-api` → IP do servidor, com proxy Cloudflare
+   habilitado. O nome precisa ficar **um nível** abaixo de `tecpontes.com.br`:
+   o certificado Universal SSL da Cloudflare cobre `*.tecpontes.com.br`, que não
+   vale para nomes como `api.listacompras.tecpontes.com.br`.
+3. Valide:
+
+   ```bash
+   curl https://apilistacompras.tecpontes.com.br/health
+   # {"status":"ok"}
+   ```
+
+4. O `.env` do app já contém:
+
+   ```env
+   EXPO_PUBLIC_API_URL=https://apilistacompras.tecpontes.com.br
+   ```
+
+> Variáveis `EXPO_PUBLIC_*` são embutidas no build: após alterar o `.env`,
+> reinicie o Metro com cache limpo (`npx expo start -c`) ou refaça o build.
 
 ### Backend
 
@@ -48,8 +80,14 @@ npm run dev:backend
 ### `.env`
 
 ```env
-EXPO_PUBLIC_API_URL=http://10.0.2.2:3001
+# Produção
+EXPO_PUBLIC_API_URL=https://apilistacompras.tecpontes.com.br
+
+# Desenvolvimento local (emulador Android)
+# EXPO_PUBLIC_API_URL=http://10.0.2.2:3001
 ```
+
+Modelo em `.env.example`. O `.env` não é versionado.
 
 ### `app.json`
 
@@ -112,8 +150,8 @@ src/
 
 | Problema | Causa provável / solução |
 |---|---|
-| `Não foi possível conectar ao servidor` | Backend parado ou `EXPO_PUBLIC_API_URL` errado |
-| Emulador não conecta | Use `10.0.2.2`, não `localhost` |
+| `Não foi possível conectar ao servidor` | Backend indisponível ou `EXPO_PUBLIC_API_URL` errado (a mensagem mostra a URL usada) |
+| Emulador não conecta (dev) | Use `10.0.2.2`, não `localhost` |
 | HTTP bloqueado em build | `usesCleartextTraffic` (dev) ou use HTTPS |
 | `429` no login | Rate limit de 30 tentativas/15 min por e-mail |
 | Deslogado após 1h | O JWT expira em 1h (refresh na Fase 2) |

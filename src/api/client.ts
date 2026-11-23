@@ -2,10 +2,17 @@ import { create, isAxiosError } from 'axios';
 
 import { clearToken, getToken } from '@/auth/storage';
 
-const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:3001';
+// Padrão de produção. Em desenvolvimento, sobrescreva no `.env`.
+// Ex.: EXPO_PUBLIC_API_URL=http://10.0.2.2:3001
+const DEFAULT_API_URL = 'https://apilistacompras.tecpontes.com.br';
+
+export const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL).replace(
+  /\/+$/,
+  ''
+);
 
 export const api = create({
-  baseURL,
+  baseURL: API_BASE_URL,
   timeout: 15000,
 });
 
@@ -50,7 +57,7 @@ export function getApiErrorMessage(error: unknown): string {
     }
 
     if (!error.response) {
-      return 'Não foi possível conectar ao servidor. Verifique se o backend está rodando.';
+      return `Não foi possível conectar ao servidor (${API_BASE_URL}). Verifique a conexão e a disponibilidade da API.`;
     }
   }
 
