@@ -109,6 +109,7 @@ npm run typecheck    # tsc --noEmit
 
 O APK pode ser gerado na nuvem com o EAS Build. Use Node.js **22.13 ou
 superior** e, na raiz do projeto, faça login e configure o EAS (na primeira vez):
+`
 
 ```bash
 npx eas-cli@latest login
@@ -173,12 +174,12 @@ src/
 
 ## Integração com a API
 
-| Recurso | Endpoint |
-|---|---|
-| Login | `POST /api/auth/login` |
-| Cadastro | `POST /api/auth/register` |
-| Listas | `GET/POST /api/lists` |
-| Cupom fiscal | `POST /api/nfce/parse-nfce` |
+| Recurso          | Endpoint                             |
+| ---------------- | ------------------------------------ |
+| Login            | `POST /api/auth/login`               |
+| Cadastro         | `POST /api/auth/register`            |
+| Listas           | `GET/POST /api/lists`                |
+| Cupom fiscal     | `POST /api/nfce/parse-nfce`          |
 | Código de barras | `GET /api/products/barcode/:barcode` |
 
 > O endpoint de código de barras foi adicionado ao backend
@@ -186,14 +187,14 @@ src/
 
 ## Solução de problemas
 
-| Problema | Causa provável / solução |
-|---|---|
+| Problema                                | Causa provável / solução                                                             |
+| --------------------------------------- | ------------------------------------------------------------------------------------ |
 | `Não foi possível conectar ao servidor` | Backend indisponível ou `EXPO_PUBLIC_API_URL` errado (a mensagem mostra a URL usada) |
-| Emulador não conecta (dev) | Use `10.0.2.2`, não `localhost` |
-| HTTP bloqueado em build | `usesCleartextTraffic` (dev) ou use HTTPS |
-| `429` no login | Rate limit de 30 tentativas/15 min por e-mail |
-| Deslogado após 1h | O JWT expira em 1h (refresh na Fase 2) |
-| Node incompatível | Use Node 22: `export PATH="$HOME/.local/node22/bin:$PATH"` |
+| Emulador não conecta (dev)              | Use `10.0.2.2`, não `localhost`                                                      |
+| HTTP bloqueado em build                 | `usesCleartextTraffic` (dev) ou use HTTPS                                            |
+| `429` no login                          | Rate limit de 30 tentativas/15 min por e-mail                                        |
+| Deslogado após 1h                       | O JWT expira em 1h (refresh na Fase 2)                                               |
+| Node incompatível                       | Use Node 22: `export PATH="$HOME/.local/node22/bin:$PATH"`                           |
 
 ## Próximos passos (Fase 2)
 

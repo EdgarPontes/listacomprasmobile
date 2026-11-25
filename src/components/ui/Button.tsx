@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
 
-type Variant = 'primary' | 'outline' | 'ghost' | 'danger';
+type Variant = 'primary' | 'outline' | 'ghost' | 'ghostDanger' | 'danger';
 
 interface ButtonProps extends Omit<PressableProps, 'children'> {
   label: string;
@@ -13,6 +13,7 @@ const containerStyles: Record<Variant, string> = {
   primary: 'bg-primary',
   outline: 'border border-primary bg-transparent',
   ghost: 'bg-transparent',
+  ghostDanger: 'bg-transparent',
   danger: 'bg-danger',
 };
 
@@ -20,6 +21,7 @@ const labelStyles: Record<Variant, string> = {
   primary: 'text-white',
   outline: 'text-primary',
   ghost: 'text-primary',
+  ghostDanger: 'text-danger',
   danger: 'text-white',
 };
 
@@ -43,7 +45,13 @@ export function Button({
       {...props}>
       {loading ? (
         <ActivityIndicator
-          color={variant === 'outline' || variant === 'ghost' ? '#2563eb' : '#ffffff'}
+          color={
+            variant === 'outline' || variant === 'ghost'
+              ? '#2563eb'
+              : variant === 'ghostDanger'
+                ? '#dc2626'
+                : '#ffffff'
+          }
         />
       ) : (
         <Text className={`text-base font-semibold ${labelStyles[variant]}`}>{label}</Text>

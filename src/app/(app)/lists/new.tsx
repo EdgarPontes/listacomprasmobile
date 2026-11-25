@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Text } from 'react-native';
+import { Alert, ScrollView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getApiErrorMessage } from '@/api/client';
@@ -20,8 +20,6 @@ export default function NewListScreen() {
   const [title, setTitle] = useState('');
   const [items, setItems] = useState<CreateListItem[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [receiptName, setReceiptName] = useState<string | null>(null);
 
   const parseNfce = useParseNfce();
@@ -29,11 +27,12 @@ export default function NewListScreen() {
 
   async function handleScan(data: string) {
     setScannerOpen(false);
-    setError(null);
-    setMessage(null);
 
     if (!/^https?:\/\//i.test(data)) {
-      setError('O QR code lido não parece ser um cupom fiscal válido.');
+      Alert.alert(
+        'QR code inválido',
+        'O QR code lido não parece ser um cupom fiscal válido.'
+      );
       return;
     }
 
@@ -42,24 +41,24 @@ export default function NewListScreen() {
       const mapped = mapNfceToItems(result.produtos ?? []);
 
       if (mapped.length === 0) {
-        setError('Nenhum item foi encontrado no cupom fiscal.');
+        Alert.alert('Cupom sem itens', 'Nenhum item foi encontrado no cupom fiscal.');
         return;
       }
 
       setItems(current => [...current, ...mapped]);
       setReceiptName(result.emitente?.nome ?? null);
-      setMessage(`${mapped.length} itens importados do cupom.`);
+      Alert.alert(
+        'Cupom importado',
+        `${mapped.length} ${mapped.length === 1 ? 'item adicionado' : 'itens adicionados'} a partir do cupom fiscal.`
+      );
     } catch (scanError) {
-      setError(getApiErrorMessage(scanError));
+      Alert.alert('Erro ao importar cupom', getApiErrorMessage(scanError));
     }
   }
 
   async function handleCreate() {
-    setError(null);
-    setMessage(null);
-
     if (!title.trim()) {
-      setError('Informe um nome para a lista.');
+      Alert.alert('Dados inválidos', 'Informe um nome para a lista.');
       return;
     }
 
@@ -72,10 +71,14 @@ export default function NewListScreen() {
       .filter(item => item.productName.trim().length > 0);
 
     try {
-      await createList.mutateAsync({ title: title.trim(), items: sanitizedItems });
-      router.replace('/');
+      const created = await createList.mutateAsync({
+        title: title.trim(),
+        items: sanitizedItems,
+      });
+
+      router.replace({ pathname: '/lists/[id]', params: { id: created.id } });
     } catch (createError) {
-      setError(getApiErrorMessage(createError));
+      Alert.alert('Erro ao criar lista', getApiErrorMessage(createError));
     }
   }
 
@@ -115,8 +118,6 @@ export default function NewListScreen() {
       {receiptName ? (
         <Text className="text-sm text-zinc-500">Cupom: {receiptName}</Text>
       ) : null}
-      {message ? <Text className="text-sm text-success">{message}</Text> : null}
-      {error ? <Text className="text-sm text-danger">{error}</Text> : null}
 
       <ImportPreview items={items} onChange={setItems} />
 

@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { FlatList, RefreshControl, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getApiErrorMessage } from '@/api/client';
@@ -72,7 +72,15 @@ export default function DashboardScreen() {
                 }}
               />
             }
-            renderItem={({ item }) => <ListCard list={item} />}
+            renderItem={({ item }) => (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Abrir lista ${item.title}`}
+                onPress={() => router.push({ pathname: '/lists/[id]', params: { id: item.id } })}
+                className="active:opacity-70">
+                <ListCard list={item} />
+              </Pressable>
+            )}
           />
         )
       ) : null}
@@ -99,6 +107,7 @@ function ListCard({ list }: { list: ShoppingList }) {
         <Text className="text-lg font-bold text-primary">
           {formatCurrency(list.total_value)}
         </Text>
+        <Text className="text-xl text-zinc-400">›</Text>
       </View>
     </Card>
   );

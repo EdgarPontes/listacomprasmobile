@@ -36,6 +36,14 @@ export interface CreateListItem {
   unitPrice: number;
 }
 
+export interface UpdateListItemInput {
+  productName?: string;
+  barcode?: string | null;
+  quantity?: number;
+  unitPrice?: number;
+  checked?: boolean;
+}
+
 export interface NfceProduto {
   descricao: string;
   codigo: string | null;
